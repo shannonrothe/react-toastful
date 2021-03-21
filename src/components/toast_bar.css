@@ -1,0 +1,61 @@
+@value transitionDurationMs 250ms;
+
+.toastBar {
+  transition: all transitionDurationMs ease-out;
+  transform: translateX(var(--transX)) translateY(var(--transY));
+  will-change: "transform";
+}
+
+.toastBar.default {
+  background: white;
+  border-radius: 8px;
+  color: #1f2937;
+  padding: 0.75em 1em;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.toastBar.clickable {
+  cursor: pointer;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.visible {
+  opacity: 1;
+}
+
+.fromTop {
+  transform: translateY(-100%);
+}
+
+.fromTopCentered {
+  transform: translateX(-50%) translateY(-100%);
+}
+
+.toTop {
+  transform: translateY(var(--transY));
+}
+
+.toTopCentered {
+  transform: translateX(-50%) translateY(var(--transY));
+}
+
+.fromBottom {
+  transform: translateY(100%);
+}
+
+.fromBottomCentered {
+  transform: translateX(-50%) translateY(100%);
+}
+
+.toBottom {
+  transform: translateY(var(--transY));
+}
+
+.toBottomCentered {
+  transform: translateX(-50%) translateY(var(--transY));
+}

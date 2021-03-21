@@ -13,15 +13,17 @@ npm install --save react-toastful
 ## Usage
 
 ```tsx
-import * as React from 'react'
+import * as React from "react";
+import { Toastful, toastful } from "react-toastful";
 
-import MyComponent from 'react-toastful'
-
-class Example extends React.Component {
-  render () {
+class App extends React.Component {
+  render() {
     return (
-      <MyComponent />
-    )
+      <>
+        <Toastful />
+        <button onClick={() => toastful("Hello, World!")}>Show Toast</button>
+      </>
+    );
   }
 }
 ```
