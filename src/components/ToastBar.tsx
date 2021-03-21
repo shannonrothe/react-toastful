@@ -33,26 +33,6 @@ const getTransformStyle = ({ position = "top" }: Toast) => {
   };
 };
 
-const KindIconWrapper = ({
-  children,
-  kind,
-}: {
-  children: React.ReactNode;
-  kind?: ToastKind;
-}) => {
-  return (
-    <svg
-      className={classNames(styles.icon, !!kind && styles[kind])}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      {children}
-    </svg>
-  );
-};
-
 const iconPaths: Record<ToastKind, string> = {
   success: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
   failure:
@@ -67,14 +47,20 @@ const KindIcon = ({ kind }: { kind?: ToastKind }) => {
   }
 
   return (
-    <KindIconWrapper kind={kind}>
+    <svg
+      className={classNames(styles.icon, !!kind && styles[kind])}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={2}
         d={iconPaths[kind]}
       />
-    </KindIconWrapper>
+    </svg>
   );
 };
 
