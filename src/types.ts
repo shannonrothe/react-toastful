@@ -22,8 +22,8 @@ export type Toast = {
   height: number;
   id: string;
   onClick?(): void;
-  position: ToastPosition;
   output: string | JSX.Element;
+  position: ToastPosition;
   swipeToDismiss?: boolean;
   toggle(): void;
   visible: boolean;

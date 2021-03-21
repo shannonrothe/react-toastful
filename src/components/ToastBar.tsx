@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
+import { DOWN, RIGHT, UP, useSwipeable } from "react-swipeable";
 import { CSSTransition } from "react-transition-group";
 import { Toast, ToastKind } from "../types";
 import styles from "./toast_bar.css";
@@ -81,11 +82,11 @@ export const DefaultToastBar = ({
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
   const handlers = useSwipeable({
     onSwiping: (event) => {
-      if (!ref || ["Up", "Down"].includes(event.dir)) {
+      if (!ref || event.dir === UP || event.dir === DOWN) {
         return;
       }
 
-      const factor = event.dir === "Right" ? 1 : -1;
+      const factor = event.dir === RIGHT ? 1 : -1;
       ref.style.setProperty(
         "--transX",
         `${factor * Math.min(event.absX, MAX_SWIPE_DELTA)}px`
@@ -93,20 +94,21 @@ export const DefaultToastBar = ({
       ref.style.opacity = `${1 - event.absX / MAX_SWIPE_DELTA}`;
     },
     onSwiped: (event) => {
-      if (!ref || ["Up", "Down"].includes(event.dir)) {
+      if (!ref || event.dir === UP || event.dir === DOWN) {
         return;
       }
 
       const outsideSwipeRestore =
-        event.dir === "Right"
+        event.dir === RIGHT
           ? event.absX >= MAX_SWIPE_DELTA
           : event.deltaX <= MAX_SWIPE_DELTA * -1;
+
       if (outsideSwipeRestore) {
         toast.dismiss();
       } else {
         ref.style.setProperty(
           "--transX",
-          toast.position === "top" || toast.position === "bottom" ? "-50%" : "0"
+          !["left", "right"].includes(toast.position) ? "-50%" : "0"
         );
         ref.style.opacity = "1";
       }
@@ -120,7 +122,7 @@ export const DefaultToastBar = ({
     setRef(el);
   };
 
-  const { position = "top" } = toast;
+  const { position } = toast;
   const top = position.includes("top");
   const centered = position === "top" || position === "bottom";
   const factor = top ? 1 : -1;

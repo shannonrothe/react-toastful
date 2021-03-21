@@ -48,6 +48,7 @@
     "@types/react-dom": "^17.0.2",
     "@types/react-transition-group": "^4.4.1",
     "@types/uuid": "^8.3.0",
+    "rollup-plugin-analyzer": "^4.0.0",
     "rollup-plugin-postcss": "^1.6.2",
     "tsdx": "^0.14.1"
   }
