@@ -1,6 +1,6 @@
 # react-toastful
 
-> Simple, renderless, React toast library
+Simple, renderless, React toast library
 
 [![NPM](https://img.shields.io/npm/v/react-toastful.svg)](https://www.npmjs.com/package/react-toastful) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
@@ -27,6 +27,10 @@ class App extends React.Component {
   }
 }
 ```
+
+## More Information
+
+[Documentation](https://react-toastful.com/docs)
 
 ## License
 
