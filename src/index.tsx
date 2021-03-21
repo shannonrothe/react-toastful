@@ -40,6 +40,7 @@ const useStore = create<{
       position: options?.position ?? "top",
       duration: options?.duration ?? Infinity,
       visible: options?.visible ?? true,
+      kind: options?.kind,
     };
     set((state) => ({ toasts: [...state.toasts, toast] }));
     return {

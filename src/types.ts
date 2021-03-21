@@ -6,11 +6,13 @@ export type ToastPosition =
   | "top_left"
   | "top_right";
 
+export type ToastKind = "success" | "failure" | "warning";
 export interface ToastfulOptions {
   position?: ToastPosition;
   visible?: boolean;
   dismissOnClick?: boolean;
   duration?: number;
+  kind?: ToastKind;
 }
 
 export type Toast = {
@@ -20,12 +22,10 @@ export type Toast = {
   dismiss(): void;
   toggle(): void;
   onClick?(): void;
-  position?: ToastPosition;
-  duration?: number;
+  position: ToastPosition;
+  duration: number;
   visible: boolean;
+  kind?: ToastKind;
 };
 
-export type ToastInstance = {
-  dismiss(): void;
-  toggle(): void;
-};
+export type ToastInstance = Pick<Toast, "dismiss" | "toggle">;
