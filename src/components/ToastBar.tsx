@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 import { CSSTransition } from "react-transition-group";
-import { Toast } from "../types";
+import { Toast, ToastKind } from "../types";
 import styles from "./toast_bar.css";
 
 const getTransformStyle = ({ position = "top" }: Toast) => {
@@ -33,6 +33,37 @@ const getTransformStyle = ({ position = "top" }: Toast) => {
   };
 };
 
+const iconPaths: Record<ToastKind, string> = {
+  success: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
+  failure:
+    "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z",
+  warning:
+    "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
+};
+
+const KindIcon = ({ kind }: { kind?: ToastKind }) => {
+  if (!kind) {
+    return null;
+  }
+
+  return (
+    <svg
+      className={classNames(styles.icon, !!kind && styles[kind])}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d={iconPaths[kind]}
+      />
+    </svg>
+  );
+};
+
 export const DefaultToastBar = ({
   children,
   toast,
@@ -47,7 +78,6 @@ export const DefaultToastBar = ({
   applyDefault: boolean;
 }) => {
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
-
   const { position = "top" } = toast;
   const top = position.includes("top");
   const centered = position === "top" || position === "bottom";
@@ -103,12 +133,18 @@ export const DefaultToastBar = ({
       <div
         ref={setRef}
         onClick={toast.onClick}
-        className={classNames(styles.toastBar, {
-          [styles.default]: applyDefault,
-          [styles.clickable]: !!toast.onClick,
-        })}
+        className={classNames(
+          styles.toastBar,
+          toast.kind && styles[toast.kind],
+          {
+            [styles.default]: applyDefault,
+            [styles.clickable]: !!toast.onClick,
+            [styles.withIcon]: !!toast.kind,
+          }
+        )}
         style={toastStyles}
       >
+        {!!toast.kind && <KindIcon kind={toast.kind} />}
         {children}
       </div>
     </CSSTransition>
