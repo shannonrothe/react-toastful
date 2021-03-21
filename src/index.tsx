@@ -32,13 +32,14 @@ const useStore = create<{
     const id = v4();
     const toast: Toast = {
       id,
-      output,
-      height: 0,
       dismiss: () => dismiss(id),
-      toggle: () => toggle(id),
-      onClick: options?.dismissOnClick ? () => dismiss(id) : undefined,
-      position: options?.position ?? "top",
       duration: options?.duration ?? Infinity,
+      height: 0,
+      onClick: options?.dismissOnClick ? () => dismiss(id) : undefined,
+      output,
+      position: options?.position ?? "top",
+      swipeToDismiss: options?.swipeToDismiss,
+      toggle: () => toggle(id),
       visible: options?.visible ?? true,
       kind: options?.kind,
     };

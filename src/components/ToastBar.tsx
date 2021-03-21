@@ -63,6 +63,7 @@ const KindIcon = ({ kind }: { kind?: ToastKind }) => {
     </svg>
   );
 };
+const MAX_SWIPE_DELTA = 100;
 
 export const DefaultToastBar = ({
   children,
@@ -78,6 +79,47 @@ export const DefaultToastBar = ({
   applyDefault: boolean;
 }) => {
   const [ref, setRef] = useState<HTMLDivElement | null>(null);
+  const handlers = useSwipeable({
+    onSwiping: (event) => {
+      if (!ref || ["Up", "Down"].includes(event.dir)) {
+        return;
+      }
+
+      const factor = event.dir === "Right" ? 1 : -1;
+      ref.style.setProperty(
+        "--transX",
+        `${factor * Math.min(event.absX, MAX_SWIPE_DELTA)}px`
+      );
+      ref.style.opacity = `${1 - event.absX / MAX_SWIPE_DELTA}`;
+    },
+    onSwiped: (event) => {
+      if (!ref || ["Up", "Down"].includes(event.dir)) {
+        return;
+      }
+
+      const outsideSwipeRestore =
+        event.dir === "Right"
+          ? event.absX >= MAX_SWIPE_DELTA
+          : event.deltaX <= MAX_SWIPE_DELTA * -1;
+      if (outsideSwipeRestore) {
+        toast.dismiss();
+      } else {
+        ref.style.setProperty(
+          "--transX",
+          toast.position === "top" || toast.position === "bottom" ? "-50%" : "0"
+        );
+        ref.style.opacity = "1";
+      }
+    },
+    trackTouch: true,
+    trackMouse: false,
+  });
+
+  const composedRef = (el: HTMLDivElement | null) => {
+    handlers.ref(el);
+    setRef(el);
+  };
+
   const { position = "top" } = toast;
   const top = position.includes("top");
   const centered = position === "top" || position === "bottom";
@@ -131,7 +173,8 @@ export const DefaultToastBar = ({
       timeout={parseInt(styles.transitionDurationMs, 10)}
     >
       <div
-        ref={setRef}
+        {...handlers}
+        ref={composedRef}
         onClick={toast.onClick}
         className={classNames(
           styles.toastBar,

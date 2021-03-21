@@ -8,22 +8,24 @@ export type ToastPosition =
 
 export type ToastKind = "success" | "failure" | "warning";
 export interface ToastfulOptions {
-  position?: ToastPosition;
-  visible?: boolean;
   dismissOnClick?: boolean;
   duration?: number;
   kind?: ToastKind;
+  position?: ToastPosition;
+  swipeToDismiss?: boolean;
+  visible?: boolean;
 }
 
 export type Toast = {
-  id: string;
-  output: string | JSX.Element;
-  height: number;
   dismiss(): void;
-  toggle(): void;
+  duration: number;
+  height: number;
+  id: string;
   onClick?(): void;
   position: ToastPosition;
-  duration: number;
+  output: string | JSX.Element;
+  swipeToDismiss?: boolean;
+  toggle(): void;
   visible: boolean;
   kind?: ToastKind;
 };
