@@ -28,11 +28,11 @@
     "analyze": "source-map-explorer 'dist/bundle.js'"
   },
   "dependencies": {
+    "@seznam/compose-react-refs": "^1.0.6",
     "classnames": "^2.2.6",
+    "nano-css": "^5.3.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-swipeable": "^6.1.0",
-    "react-transition-group": "^4.4.1",
     "tslib": "^2.1.0",
     "uuid": "^8.3.2",
     "zustand": "^3.3.3"
@@ -46,7 +46,6 @@
     "@types/classnames": "^2.2.11",
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.2",
-    "@types/react-transition-group": "^4.4.1",
     "@types/uuid": "^8.3.0",
     "rollup-plugin-analyzer": "^4.0.0",
     "rollup-plugin-postcss": "^1.6.2",

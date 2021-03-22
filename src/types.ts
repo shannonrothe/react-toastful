@@ -11,6 +11,7 @@ export interface ToastfulOptions {
   dismissOnClick?: boolean;
   duration?: number;
   kind?: ToastKind;
+  draggable?: boolean;
   position?: ToastPosition;
   swipeToDismiss?: boolean;
   visible?: boolean;
@@ -19,6 +20,7 @@ export interface ToastfulOptions {
 export type Toast = {
   dismiss(): void;
   duration: number;
+  draggable: boolean;
   height: number;
   id: string;
   onClick?(): void;

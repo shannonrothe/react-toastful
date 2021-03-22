@@ -1,36 +1,81 @@
 import classNames from "classnames";
-import React, { useEffect, useState } from "react";
-import { DOWN, RIGHT, UP, useSwipeable } from "react-swipeable";
-import { CSSTransition } from "react-transition-group";
+import { create } from "nano-css";
+import { addon as addonKeyframes } from "nano-css/addon/keyframes";
+import { addon as addonRule } from "nano-css/addon/rule";
+import React, { CSSProperties, useEffect } from "react";
+import { useToastful } from "../hooks/use_toast";
+import { useStore } from "../store";
 import { Toast, ToastKind } from "../types";
 import styles from "./toast_bar.css";
 
-const getTransformStyle = ({ position = "top" }: Toast) => {
+const nano = create({
+  h: React.createElement,
+});
+addonKeyframes(nano);
+addonRule(nano);
+
+const enterKeyframes = (centered: boolean) =>
+  nano.keyframes?.({
+    "0%": {
+      transform: `translate3d(${centered ? "-50%" : "0"}, -100%, 0) scale(0.6)`,
+      opacity: "0.5",
+    },
+    "100%": {
+      transform: `translate3d(${centered ? "-50%" : "0"}, 0, 0) scale(1);`,
+      opacity: "1",
+    },
+  });
+
+const exitKeyframes = (centered: boolean, factor: number) =>
+  nano.keyframes?.({
+    "0%": {
+      transform: `translate3d(${centered ? "-50%" : "0"}, ${factor *
+        -80}px, -1px) scale(1);`,
+      opacity: "1",
+    },
+    "100%": {
+      transform: `translate3d(${
+        centered ? "-50%" : "0"
+      }, -100%, -1px) scale(.5);`,
+      opacity: "0",
+    },
+  });
+
+const getAnimations = ({ position = "top", visible }: Toast) => {
   const top = position.includes("top");
   const centered = position === "top" || position === "bottom";
-  const startAnimationClasses = top
-    ? centered
-      ? styles.fromTopCentered
-      : styles.fromTop
-    : centered
-    ? styles.fromBottomCentered
-    : styles.fromBottom;
+  const factor = top ? 1 : -1;
 
-  const activeAnimationClasses = top
-    ? centered
-      ? styles.toTopCentered
-      : styles.toTop
+  return visible
+    ? `${enterKeyframes(centered)} 0.35s cubic-bezier(.21,1.02,.73,1) forwards`
+    : `${exitKeyframes(
+        centered,
+        factor
+      )} 0.8s forwards cubic-bezier(.06,.71,.55,1)`;
+};
+
+const getPosition = (toast: Toast, offset: number): CSSProperties => {
+  const top = toast.position.includes("top");
+  const centered = toast.position === "top" || toast.position === "bottom";
+  const factor = top ? 1 : -1;
+
+  const verticalPositioning = top ? { top: "1em" } : { bottom: "1em" };
+  const horizontalPositioning = toast.position.includes("left")
+    ? { left: "1em" }
     : centered
-    ? styles.toBottomCentered
-    : styles.toBottom;
+    ? {
+        left: "50%",
+        width: "auto",
+        justifyContent: "center",
+      }
+    : { right: "1em" };
 
   return {
-    appear: classNames(styles.hidden, startAnimationClasses),
-    appearActive: classNames(styles.visible, activeAnimationClasses),
-    enter: classNames(styles.hidden, startAnimationClasses),
-    enterActive: classNames(styles.visible, activeAnimationClasses),
-    exit: classNames(styles.hidden, activeAnimationClasses),
-    exitActive: classNames(styles.visible, startAnimationClasses),
+    position: "fixed",
+    transition: "all 230ms cubic-bezier(.21, 1.02, .73, 1)",
+    transform: `translateY(${offset * factor}px)`,
+    ...verticalPositioning,
+    ...horizontalPositioning,
   };
 };
 
@@ -64,157 +109,48 @@ const KindIcon = ({ kind }: { kind?: ToastKind }) => {
     </svg>
   );
 };
-const MAX_SWIPE_DELTA = 100;
-
-export const DefaultToastBar = ({
-  children,
-  toast,
-  onHeightComputed,
-  offset,
-  applyDefault,
-}: {
-  children?: React.ReactNode;
-  toast: Toast;
-  onHeightComputed: (height: number) => void;
-  offset: number;
-  applyDefault: boolean;
-}) => {
-  const [ref, setRef] = useState<HTMLDivElement | null>(null);
-  const handlers = useSwipeable({
-    onSwiping: (event) => {
-      if (!ref || event.dir === UP || event.dir === DOWN) {
-        return;
-      }
-
-      const factor = event.dir === RIGHT ? 1 : -1;
-      ref.style.setProperty(
-        "--transX",
-        `${factor * Math.min(event.absX, MAX_SWIPE_DELTA)}px`
-      );
-      ref.style.opacity = `${1 - event.absX / MAX_SWIPE_DELTA}`;
-    },
-    onSwiped: (event) => {
-      if (!ref || event.dir === UP || event.dir === DOWN) {
-        return;
-      }
-
-      const outsideSwipeRestore =
-        event.dir === RIGHT
-          ? event.absX >= MAX_SWIPE_DELTA
-          : event.deltaX <= MAX_SWIPE_DELTA * -1;
-
-      if (outsideSwipeRestore) {
-        toast.dismiss();
-      } else {
-        ref.style.setProperty(
-          "--transX",
-          !["left", "right"].includes(toast.position) ? "-50%" : "0"
-        );
-        ref.style.opacity = "1";
-      }
-    },
-    trackTouch: true,
-    trackMouse: false,
-  });
-
-  const composedRef = (el: HTMLDivElement | null) => {
-    handlers.ref(el);
-    setRef(el);
-  };
-
-  const { position } = toast;
-  const top = position.includes("top");
-  const centered = position === "top" || position === "bottom";
-  const factor = top ? 1 : -1;
-
-  const verticalPositioning = top ? { top: "1em" } : { bottom: "1em" };
-  const horizontalPositioning = position.includes("left")
-    ? { left: "1em" }
-    : centered
-    ? {
-        left: "50%",
-        width: "auto",
-        "--transX": "-50%",
-        justifyContent: "center",
-      }
-    : { right: "1em" };
-
-  useEffect(() => {
-    if (ref) {
-      const { height } = ref.getBoundingClientRect();
-      onHeightComputed(height);
-    }
-  }, [ref]);
-
-  useEffect(() => {
-    if (toast.duration === Infinity) {
-      return;
-    }
-
-    const timeout = setTimeout(toast.dismiss, toast.duration);
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, []);
-
-  const toastStyles: any = {
-    display: "flex",
-    position: "fixed",
-    "--transY": `${factor * offset}px`,
-    ...verticalPositioning,
-    ...horizontalPositioning,
-  };
-
-  return (
-    <CSSTransition
-      in={toast.visible}
-      appear={true}
-      mountOnEnter={true}
-      unmountOnExit={true}
-      classNames={getTransformStyle(toast)}
-      timeout={parseInt(styles.transitionDurationMs, 10)}
-    >
-      <div
-        {...handlers}
-        ref={composedRef}
-        onClick={toast.onClick}
-        className={classNames(
-          styles.toastBar,
-          toast.kind && styles[toast.kind],
-          {
-            [styles.default]: applyDefault,
-            [styles.clickable]: !!toast.onClick,
-            [styles.withIcon]: !!toast.kind,
-          }
-        )}
-        style={toastStyles}
-      >
-        {!!toast.kind && <KindIcon kind={toast.kind} />}
-        {children}
-      </div>
-    </CSSTransition>
-  );
-};
 
 export const ToastBar = ({
   toast,
-  onHeightComputed,
-  offset,
   renderToast,
 }: {
   toast: Toast;
-  onHeightComputed: (height: number) => void;
-  offset: number;
   renderToast?: React.ReactNode;
 }) => {
+  const store = useStore.getState();
+  const { eventHandlers, offset, toastRef, setToastRef } = useToastful({
+    toast,
+  });
+  const positionStyle = getPosition(toast, offset);
+  const animation = React.useMemo(
+    () =>
+      toast.height > 0 ? { animation: getAnimations(toast) } : { opacity: 0 },
+    [toast.height]
+  );
+
+  useEffect(() => {
+    if (toastRef) {
+      const { height } = toastRef.getBoundingClientRect();
+      store.setToastHeight(toast, height);
+    }
+  }, [toastRef]);
+
   return (
-    <DefaultToastBar
-      toast={toast}
-      applyDefault={!renderToast}
-      onHeightComputed={onHeightComputed}
-      offset={offset}
+    <div
+      style={{
+        display: "flex",
+        zIndex: toast.visible ? 9999 : undefined,
+        ...positionStyle,
+      }}
     >
-      {!!renderToast ? <>{renderToast}</> : <span>{toast.output}</span>}
-    </DefaultToastBar>
+      <div
+        {...eventHandlers}
+        className={classNames(styles.default)}
+        ref={setToastRef}
+        style={{ ...animation }}
+      >
+        {!!renderToast ? <>{renderToast}</> : <span>{toast.output}</span>}
+      </div>
+    </div>
   );
 };
