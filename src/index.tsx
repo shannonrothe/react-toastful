@@ -8,8 +8,8 @@ export type ToastfulProps = {
 };
 
 export const Toastful = ({ children }: ToastfulProps) => {
-  const { toasts } = useStore((state) => ({
-    toasts: state.toasts,
+  const { toasts } = useStore(state => ({
+    toasts: state.toasts
   }));
 
   return (
@@ -17,10 +17,10 @@ export const Toastful = ({ children }: ToastfulProps) => {
       style={{
         position: "fixed",
         zIndex: 9999,
-        display: "flex",
+        display: "flex"
       }}
     >
-      {toasts.map((toast) => (
+      {toasts.map(toast => (
         <ToastBar
           key={toast.id}
           toast={toast}

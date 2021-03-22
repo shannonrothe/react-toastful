@@ -1,6 +1,6 @@
-import { v4 } from "uuid";
 import create from "zustand";
 import { Toast, ToastfulOptions, ToastInstance } from "./types";
+import { nextId } from "./utils";
 
 export const useStore = create<{
   toasts: Toast[];
@@ -15,9 +15,7 @@ export const useStore = create<{
   toasts: [],
   dismiss: (id) =>
     set((state) => ({
-      toasts: state.toasts.map((t) =>
-        t.id === id ? { ...t, visible: false } : t
-      ),
+      toasts: state.toasts.filter((t) => t.id !== id),
     })),
   toggle: (id) =>
     set((state) => ({
@@ -27,7 +25,7 @@ export const useStore = create<{
     })),
   addToast: (output: string | JSX.Element, options?: ToastfulOptions) => {
     const { dismiss, toggle } = get();
-    const id = v4();
+    const id = nextId();
     const toast: Toast = {
       id,
       dismiss: () => dismiss(id),
@@ -43,15 +41,12 @@ export const useStore = create<{
       visible: options?.visible ?? true,
     };
     set((state) => ({ toasts: [...state.toasts, toast] }));
-    return {
-      dismiss: toast.dismiss,
-      toggle: toast.toggle,
-    };
+    return { dismiss: toast.dismiss, toggle: toast.toggle };
   },
   setToastHeight: (toast: Toast, height: number) =>
     set((state) => ({
-      toasts: [
-        ...state.toasts.map((t) => (t.id === toast.id ? { ...t, height } : t)),
-      ],
+      toasts: state.toasts.map((t) =>
+        t.id === toast.id ? { ...t, height } : t
+      ),
     })),
 }));

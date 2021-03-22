@@ -1,4 +1,4 @@
-import React, { DOMAttributes, useEffect, useRef, useState } from "react";
+import React, { DOMAttributes, useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { Toast } from "../types";
 
@@ -19,14 +19,6 @@ const getX = (event: DragEvent) => {
     : event.clientX;
 };
 
-const getY = (event: DragEvent) => {
-  return event.targetTouches && event.targetTouches.length >= 1
-    ? event.targetTouches[0].clientY
-    : event.clientY;
-};
-
-const GUTTER = 8;
-
 export const useToastful = ({
   toast,
   trackMouse = false,
@@ -36,7 +28,7 @@ export const useToastful = ({
   trackMouse?: boolean;
   trackTouch?: boolean;
 }) => {
-  const [toastRef, setToastRef] = useState<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const { current: drag } = useRef<Draggable>({
     start: 0,
     x: 0,
@@ -46,40 +38,46 @@ export const useToastful = ({
     canDrag: false,
   });
 
-  const onDragStart = (
-    event:
-      | React.MouseEvent<HTMLElement | MouseEvent>
-      | React.TouchEvent<HTMLElement>
-  ) => {
-    if (!toastRef) {
-      return;
-    }
+  const onDragStart = React.useCallback(
+    (
+      event:
+        | React.MouseEvent<HTMLElement | MouseEvent>
+        | React.TouchEvent<HTMLElement>
+    ) => {
+      if (!ref.current) {
+        return;
+      }
 
-    if (toast.draggable) {
-      drag.canDrag = true;
-      drag.x = getX(event.nativeEvent as DragEvent);
-      drag.y = getY(event.nativeEvent as DragEvent);
-      drag.start = drag.x;
-      drag.removalDelta = toastRef.offsetWidth;
-    }
-  };
+      if (toast.draggable) {
+        drag.canDrag = true;
+        drag.x = getX(event.nativeEvent as DragEvent);
+        drag.start = drag.x;
+        drag.removalDelta = ref.current.offsetWidth;
+      }
+    },
+    [ref]
+  );
 
-  const onDragging = (event: MouseEvent | TouchEvent) => {
-    if (drag.canDrag) {
-      event.preventDefault();
+  const onDragging = React.useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      const toastRef = ref.current!;
 
-      const ref = toastRef!;
-      drag.x = getX(event as DragEvent);
-      drag.y = getY(event as DragEvent);
-      drag.delta = drag.x - drag.start;
+      if (drag.canDrag) {
+        event.preventDefault();
 
-      ref.style.setProperty("--transX", `${drag.delta}px`);
-      ref.style.opacity = `${1 - Math.abs(drag.delta / drag.removalDelta)}`;
-    }
-  };
+        drag.x = getX(event as DragEvent);
+        drag.delta = drag.x - drag.start;
 
-  const onDragEnd = () => {
-    const ref = toastRef!;
+        toastRef.style.setProperty("--transX", `${drag.delta}px`);
+        toastRef.style.opacity = `${1 -
+          Math.abs(drag.delta / drag.removalDelta)}`;
+      }
+    },
+    [ref]
+  );
+
+  const onDragEnd = React.useCallback(() => {
+    const toastRef = ref.current!;
 
     if (drag.canDrag) {
       if (Math.abs(drag.delta) > drag.removalDelta) {
@@ -87,24 +85,22 @@ export const useToastful = ({
         return;
       }
 
-      ref.style.setProperty(
+      toastRef.style.setProperty(
         "--transX",
         toast.position === "top" || toast.position === "bottom" ? "-50%" : "0"
       );
-      ref.style.opacity = "1";
+      toastRef.style.opacity = "1";
     }
-  };
-
-  const onDragTransitionEnd = () => {};
+  }, [ref]);
 
   useEffect(() => {
     if (trackMouse) {
-      document.addEventListener("mousemove", onDragging);
+      document.addEventListener("mousemove", onDragging, { passive: false });
       document.addEventListener("mouseup", onDragEnd);
     }
 
     if (trackTouch) {
-      document.addEventListener("touchmove", onDragging);
+      document.addEventListener("touchmove", onDragging, { passive: false });
       document.addEventListener("touchend", onDragEnd);
     }
 
@@ -127,23 +123,20 @@ export const useToastful = ({
       (t) => t.visible && t.position === toast.position
     );
     const index = visibleToastsAtPosition.findIndex((t) => t.id === toast.id);
-    const includeGutter = index > 0;
-    const gutterSpacing = includeGutter ? GUTTER : 0;
+    const includeMargin = index > 0;
+    const gutterSpacing = includeMargin ? 8 : 0;
 
-    return toast.height ? index * (toast.height + gutterSpacing) : GUTTER;
-  }, [visibleToasts, toast.height]);
+    return toast.height ? index * (toast.height + gutterSpacing) : 8;
+  }, [visibleToasts, toast.height])();
 
   const eventHandlers: DOMAttributes<HTMLElement> = {
     onMouseDown: onDragStart,
     onTouchStart: onDragStart,
-    onMouseUp: onDragTransitionEnd,
-    onTouchEnd: onDragTransitionEnd,
   };
 
   return {
     eventHandlers,
-    offset: offset(),
-    setToastRef,
-    toastRef,
+    offset,
+    ref,
   };
 };
