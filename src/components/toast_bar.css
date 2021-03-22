@@ -1,4 +1,6 @@
 .default {
+  display: flex;
+  align-items: center;
   background: white;
   border-radius: 8px;
   color: #1f2937;
@@ -8,19 +10,19 @@
   line-height: 1.25rem;
 }
 
-.toastBar.default.success {
+.default.success {
   border: 1px solid #34d399;
 }
 
-.toastBar.default.failure {
+.default.failure {
   border: 1px solid #dc2626;
 }
 
-.toastBar.default.warning {
+.default.warning {
   border: 1px solid #f59e0b;
 }
 
-.toastBar.default.withIcon {
+.default.withIcon {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -44,6 +46,6 @@
   color: #f59e0b;
 }
 
-.toastBar.clickable {
+.clickable {
   cursor: pointer;
 }

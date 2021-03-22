@@ -10,7 +10,6 @@ export type ToastfulProps = {
 export const Toastful = ({ children }: ToastfulProps) => {
   const { toasts } = useStore((state) => ({
     toasts: state.toasts,
-    setToastHeight: state.setToastHeight,
   }));
 
   return (

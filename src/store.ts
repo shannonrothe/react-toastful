@@ -34,6 +34,7 @@ export const useStore = create<{
       draggable: options?.draggable ?? false,
       duration: options?.duration ?? Infinity,
       height: 0,
+      kind: options?.kind,
       onClick: options?.dismissOnClick ? () => dismiss(id) : undefined,
       output,
       position: options?.position ?? "top",

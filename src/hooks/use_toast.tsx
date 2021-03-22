@@ -131,7 +131,7 @@ export const useToastful = ({
     const gutterSpacing = includeGutter ? GUTTER : 0;
 
     return toast.height ? index * (toast.height + gutterSpacing) : GUTTER;
-  }, [toast.height]);
+  }, [visibleToasts, toast.height]);
 
   const eventHandlers: DOMAttributes<HTMLElement> = {
     onMouseDown: onDragStart,

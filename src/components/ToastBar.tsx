@@ -26,32 +26,40 @@ const enterKeyframes = (centered: boolean) =>
     },
   });
 
-const exitKeyframes = (centered: boolean, factor: number) =>
+const exitKeyframes = (centered: boolean, factor: number, offset: number) =>
   nano.keyframes?.({
     "0%": {
       transform: `translate3d(${centered ? "-50%" : "0"}, ${factor *
-        -80}px, -1px) scale(1);`,
+        offset}px, -1px) scale(1);`,
       opacity: "1",
     },
     "100%": {
-      transform: `translate3d(${
-        centered ? "-50%" : "0"
-      }, -100%, -1px) scale(.5);`,
+      transform: `translate3d(${centered ? "-50%" : "0"}, ${factor *
+        offset}px, -1px) scale(.5);`,
       opacity: "0",
     },
   });
 
-const getAnimations = ({ position = "top", visible }: Toast) => {
-  const top = position.includes("top");
-  const centered = position === "top" || position === "bottom";
+const getAnimations = (toast: Toast, offset: number) => {
+  const top = toast.position.includes("top");
+  const centered = toast.position === "top" || toast.position === "bottom";
   const factor = top ? 1 : -1;
 
-  return visible
-    ? `${enterKeyframes(centered)} 0.35s cubic-bezier(.21,1.02,.73,1) forwards`
-    : `${exitKeyframes(
-        centered,
-        factor
-      )} 0.8s forwards cubic-bezier(.06,.71,.55,1)`;
+  if (toast.height === 0) {
+    return { opacity: 0 };
+  }
+
+  return {
+    animation: toast.visible
+      ? `${enterKeyframes(
+          centered
+        )} 0.35s cubic-bezier(.21,1.02,.73,1) forwards`
+      : `${exitKeyframes(
+          centered,
+          factor,
+          offset
+        )} 0.8s forwards cubic-bezier(.06,.71,.55,1)`,
+  };
 };
 
 const getPosition = (toast: Toast, offset: number): CSSProperties => {
@@ -87,29 +95,6 @@ const iconPaths: Record<ToastKind, string> = {
     "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
 };
 
-const KindIcon = ({ kind }: { kind?: ToastKind }) => {
-  if (!kind) {
-    return null;
-  }
-
-  return (
-    <svg
-      className={classNames(styles.icon, !!kind && styles[kind])}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d={iconPaths[kind]}
-      />
-    </svg>
-  );
-};
-
 export const ToastBar = ({
   toast,
   renderToast,
@@ -121,19 +106,25 @@ export const ToastBar = ({
   const { eventHandlers, offset, toastRef, setToastRef } = useToastful({
     toast,
   });
-  const positionStyle = getPosition(toast, offset);
-  const animation = React.useMemo(
-    () =>
-      toast.height > 0 ? { animation: getAnimations(toast) } : { opacity: 0 },
-    [toast.height]
-  );
 
+  // Set the height after render so we can calculate the correct translation offset
   useEffect(() => {
     if (toastRef) {
       const { height } = toastRef.getBoundingClientRect();
       store.setToastHeight(toast, height);
     }
   }, [toastRef]);
+
+  // On mount, establish a timeout so we can dismiss the toast after a given duration
+  useEffect(() => {
+    const timeout = setTimeout(toast.dismiss, toast.duration);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  const positionStyle = getPosition(toast, offset);
 
   return (
     <div
@@ -145,11 +136,36 @@ export const ToastBar = ({
     >
       <div
         {...eventHandlers}
-        className={classNames(styles.default)}
+        className={classNames(toast.kind && styles[toast.kind], {
+          [styles.default]: !renderToast,
+          [styles.clickable]: !!toast.onClick,
+        })}
         ref={setToastRef}
-        style={{ ...animation }}
+        style={{ ...getAnimations(toast, offset) }}
       >
-        {!!renderToast ? <>{renderToast}</> : <span>{toast.output}</span>}
+        {!!renderToast ? (
+          <>{renderToast}</>
+        ) : (
+          <>
+            {toast.kind && (
+              <svg
+                className={classNames(styles.icon, styles[toast.kind])}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d={iconPaths[toast.kind]}
+                />
+              </svg>
+            )}
+            {toast.output}
+          </>
+        )}
       </div>
     </div>
   );
