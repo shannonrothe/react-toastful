@@ -20,20 +20,33 @@
   "engines": {
     "node": ">=10"
   },
+  "size-limit": [
+    {
+      "path": "dist/react-toastful.cjs.production.min.js",
+      "limit": "4.5kb"
+    },
+    {
+      "path": "dist/react-toastful.esm.js",
+      "limit": "4.5kb"
+    }
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
   "scripts": {
-    "test": "cross-env CI=1 react-scripts-ts test --env=jsdom",
-    "test:watch": "react-scripts-ts test --env=jsdom",
     "build": "tsdx build",
     "start": "tsdx watch",
-    "analyze": "source-map-explorer 'dist/bundle.js'"
+    "lint": "tsdx lint",
+    "test": "echo \"No test specified\"",
+    "analyze": "size-limit --why",
+    "size": "size-limit"
   },
   "dependencies": {
-    "classnames": "^2.2.6",
+    "goober": "^2.0.35",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-transition-group": "^4.4.1",
-    "tslib": "^2.1.0",
-    "uuid": "^8.3.2",
     "zustand": "^3.3.3"
   },
   "peerDependencies": {
@@ -42,12 +55,13 @@
     "react-dom": "^17.0.1"
   },
   "devDependencies": {
+    "@size-limit/preset-small-lib": "^4.10.1",
     "@types/classnames": "^2.2.11",
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.2",
-    "@types/react-transition-group": "^4.4.1",
     "@types/uuid": "^8.3.0",
-    "rollup-plugin-postcss": "^1.6.2",
-    "tsdx": "^0.14.1"
+    "size-limit": "^4.10.1",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.1.0"
   }
 }
