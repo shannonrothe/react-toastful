@@ -23,7 +23,7 @@ const getX = (event: DragEvent) => {
 export const useToastful = ({
   toast,
   trackMouse = false,
-  trackTouch = true,
+  trackTouch = true
 }: {
   toast: Toast;
   trackMouse?: boolean;
@@ -37,7 +37,7 @@ export const useToastful = ({
     delta: 0,
     removalDelta: 0,
     canDrag: false,
-    closeOnClick: true,
+    closeOnClick: true
   });
 
   const onDragStart = (
@@ -67,7 +67,7 @@ export const useToastful = ({
 
       if (drag.start !== drag.x) drag.closeOnClick = false;
 
-      toastRef.style.setProperty("--transX", `${drag.delta}px`);
+      toastRef.style.setProperty("--trans-x", `${drag.delta}px`);
       toastRef.style.opacity = `${1 -
         Math.abs(drag.delta / drag.removalDelta)}`;
     }
@@ -85,7 +85,7 @@ export const useToastful = ({
       }
 
       toastRef.style.setProperty(
-        "--transX",
+        "--trans-x",
         toast.position === "top" || toast.position === "bottom" ? "-50%" : "0"
       );
       toastRef.style.opacity = "1";
@@ -124,12 +124,12 @@ export const useToastful = ({
     };
   }, [toast.draggable]);
 
-  const visibleToasts = useStore.getState().toasts.filter((t) => t.visible);
+  const visibleToasts = useStore.getState().toasts.filter(t => t.visible);
   const offset = React.useCallback(() => {
     const visibleToastsAtPosition = visibleToasts.filter(
-      (t) => t.visible && t.position === toast.position
+      t => t.visible && t.position === toast.position
     );
-    const index = visibleToastsAtPosition.findIndex((t) => t.id === toast.id);
+    const index = visibleToastsAtPosition.findIndex(t => t.id === toast.id);
     const includeMargin = index > 0;
     const gutterSpacing = includeMargin ? 8 : 0;
 
@@ -141,12 +141,12 @@ export const useToastful = ({
     onTouchStart: onDragStart,
     onClick: toast.dismissOnClick
       ? () => drag.closeOnClick && toast.dismiss()
-      : undefined,
+      : undefined
   };
 
   return {
     eventHandlers,
     offset,
-    ref,
+    ref
   };
 };
