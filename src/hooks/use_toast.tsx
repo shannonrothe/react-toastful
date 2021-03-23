@@ -6,6 +6,7 @@ type DragEvent = TouchEvent & MouseEvent;
 
 interface Draggable {
   canDrag: boolean;
+  closeOnClick: boolean;
   start: number;
   delta: number;
   x: number;
@@ -36,50 +37,48 @@ export const useToastful = ({
     delta: 0,
     removalDelta: 0,
     canDrag: false,
+    closeOnClick: true,
   });
 
-  const onDragStart = React.useCallback(
-    (
-      event:
-        | React.MouseEvent<HTMLElement | MouseEvent>
-        | React.TouchEvent<HTMLElement>
-    ) => {
-      if (!ref.current) {
-        return;
-      }
+  const onDragStart = (
+    event:
+      | React.MouseEvent<HTMLElement | MouseEvent>
+      | React.TouchEvent<HTMLElement>
+  ) => {
+    if (!ref.current) {
+      return;
+    }
 
-      if (toast.draggable) {
-        drag.canDrag = true;
-        drag.x = getX(event.nativeEvent as DragEvent);
-        drag.start = drag.x;
-        drag.removalDelta = ref.current.offsetWidth;
-      }
-    },
-    [ref]
-  );
+    if (toast.draggable) {
+      drag.canDrag = true;
+      drag.x = getX(event.nativeEvent as DragEvent);
+      drag.start = drag.x;
+      drag.removalDelta = ref.current.offsetWidth;
+    }
+  };
 
-  const onDragging = React.useCallback(
-    (event: MouseEvent | TouchEvent) => {
+  const onDragging = (event: MouseEvent | TouchEvent) => {
+    if (drag.canDrag) {
+      event.preventDefault();
       const toastRef = ref.current!;
 
-      if (drag.canDrag) {
-        event.preventDefault();
+      drag.x = getX(event as DragEvent);
+      drag.delta = drag.x - drag.start;
 
-        drag.x = getX(event as DragEvent);
-        drag.delta = drag.x - drag.start;
+      if (drag.start !== drag.x) drag.closeOnClick = false;
 
-        toastRef.style.setProperty("--transX", `${drag.delta}px`);
-        toastRef.style.opacity = `${1 -
-          Math.abs(drag.delta / drag.removalDelta)}`;
-      }
-    },
-    [ref]
-  );
+      toastRef.style.setProperty("--transX", `${drag.delta}px`);
+      toastRef.style.opacity = `${1 -
+        Math.abs(drag.delta / drag.removalDelta)}`;
+    }
+  };
 
-  const onDragEnd = React.useCallback(() => {
+  const onDragEnd = () => {
     const toastRef = ref.current!;
 
     if (drag.canDrag) {
+      drag.canDrag = false;
+
       if (Math.abs(drag.delta) > drag.removalDelta) {
         toast.dismiss();
         return;
@@ -91,9 +90,9 @@ export const useToastful = ({
       );
       toastRef.style.opacity = "1";
     }
-  }, [ref]);
+  };
 
-  useEffect(() => {
+  const bindDragEvents = () => {
     if (trackMouse) {
       document.addEventListener("mousemove", onDragging, { passive: false });
       document.addEventListener("mouseup", onDragEnd);
@@ -103,19 +102,27 @@ export const useToastful = ({
       document.addEventListener("touchmove", onDragging, { passive: false });
       document.addEventListener("touchend", onDragEnd);
     }
+  };
+
+  const unbindDragEvents = () => {
+    if (trackMouse) {
+      document.removeEventListener("mousemove", onDragging);
+      document.removeEventListener("mouseup", onDragEnd);
+    }
+
+    if (trackTouch) {
+      document.removeEventListener("touchmove", onDragging);
+      document.removeEventListener("touchend", onDragEnd);
+    }
+  };
+
+  useEffect(() => {
+    toast.draggable && bindDragEvents();
 
     return () => {
-      if (trackMouse) {
-        document.removeEventListener("mousemove", onDragging);
-        document.removeEventListener("mouseup", onDragEnd);
-      }
-
-      if (trackTouch) {
-        document.removeEventListener("touchmove", onDragging);
-        document.removeEventListener("touchend", onDragEnd);
-      }
+      toast.draggable && unbindDragEvents();
     };
-  }, [trackMouse, trackTouch]);
+  }, [toast.draggable]);
 
   const visibleToasts = useStore.getState().toasts.filter((t) => t.visible);
   const offset = React.useCallback(() => {
@@ -132,6 +139,9 @@ export const useToastful = ({
   const eventHandlers: DOMAttributes<HTMLElement> = {
     onMouseDown: onDragStart,
     onTouchStart: onDragStart,
+    onClick: toast.dismissOnClick
+      ? () => drag.closeOnClick && toast.dismiss()
+      : undefined,
   };
 
   return {

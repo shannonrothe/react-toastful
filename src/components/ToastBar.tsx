@@ -9,7 +9,7 @@ const iconPaths: Record<ToastKind, string> = {
   failure:
     "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z",
   warning:
-    "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
+    "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
 };
 
 setup(React.createElement);
@@ -19,12 +19,12 @@ const enterKeyframes = (centered: boolean, factor: number) =>
     "0%": {
       transform: `translate3d(${centered ? "-50%" : "0"}, ${factor *
         -80}px, 0) scale(0.6)`,
-      opacity: "0",
+      opacity: "0"
     },
     "100%": {
       transform: `translate3d(${centered ? "-50%" : "0"}, 0, 0) scale(1);`,
-      opacity: "1",
-    },
+      opacity: "1"
+    }
   });
 
 const exitKeyframes = (centered: boolean, factor: number, offset: number) =>
@@ -32,13 +32,13 @@ const exitKeyframes = (centered: boolean, factor: number, offset: number) =>
     "0%": {
       transform: `translate3d(${centered ? "-50%" : "0"}, ${factor *
         offset}px, -1px) scale(1);`,
-      opacity: "1",
+      opacity: "1"
     },
     "100%": {
       transform: `translate3d(${centered ? "-50%" : "0"}, ${factor *
         offset}px, -1px) scale(.5);`,
-      opacity: "0",
-    },
+      opacity: "0"
+    }
   });
 
 const getAnimations = (toast: Toast, offset: number) => {
@@ -58,7 +58,7 @@ const getAnimations = (toast: Toast, offset: number) => {
               centered,
               factor,
               offset
-            )} 0.8s forwards cubic-bezier(.2,.69,.88,.64)`,
+            )} 0.8s forwards cubic-bezier(.2,.69,.88,.64)`
       };
 };
 
@@ -77,7 +77,7 @@ const getPosition = (
     ? {
         left: "50%",
         width: "auto",
-        justifyContent: "center",
+        justifyContent: "center"
       }
     : { right: "1em" };
 
@@ -87,13 +87,13 @@ const getPosition = (
     "--transX": centered ? "-50%" : "0",
     transform: `translateX(var(--transX)) translateY(${offset * factor}px)`,
     ...verticalPositioning,
-    ...horizontalPositioning,
+    ...horizontalPositioning
   };
 };
 
 export const ToastBar = ({
   toast,
-  renderToast,
+  renderToast
 }: {
   toast: Toast;
   renderToast?: React.ReactNode;
@@ -109,7 +109,7 @@ export const ToastBar = ({
   }, []);
 
   const { eventHandlers, offset, ref } = useToastful({
-    toast,
+    toast
   });
 
   // On mount, establish a timeout so we can dismiss the toast after a given duration
@@ -138,7 +138,7 @@ export const ToastBar = ({
         boxShadow:
           "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
         fontSize: "0.875rem",
-        lineHeight: "1.25rem",
+        lineHeight: "1.25rem"
       };
   const kind = toast.kind
     ? {
@@ -148,7 +148,7 @@ export const ToastBar = ({
             : toast.kind === "failure"
             ? "dc2626"
             : "f59e0b"
-        }`,
+        }`
       }
     : {};
 
@@ -158,7 +158,7 @@ export const ToastBar = ({
       style={{
         display: "flex",
         zIndex: toast.visible ? 9999 : undefined,
-        ...positionStyle,
+        ...positionStyle
       }}
     >
       <div
@@ -170,7 +170,7 @@ export const ToastBar = ({
           ...defaults,
           ...kind,
           ...getAnimations(toast, offset),
-          cursor: toast.onClick ? "pointer" : "default",
+          cursor: toast.onClick ? "pointer" : "default"
         }}
       >
         {!!renderToast ? (
@@ -188,7 +188,7 @@ export const ToastBar = ({
                       ? "#34d399"
                       : toast.kind === "failure"
                       ? "#dc2626"
-                      : "#f59e0b",
+                      : "#f59e0b"
                 }}
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
