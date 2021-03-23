@@ -44,11 +44,9 @@
     "size": "size-limit"
   },
   "dependencies": {
-    "@seznam/compose-react-refs": "^1.0.6",
     "goober": "^2.0.35",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "tslib": "^2.1.0",
     "zustand": "^3.3.3"
   },
   "peerDependencies": {
@@ -62,9 +60,8 @@
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.2",
     "@types/uuid": "^8.3.0",
-    "rollup-plugin-analyzer": "^4.0.0",
-    "rollup-plugin-postcss": "^1.6.2",
     "size-limit": "^4.10.1",
-    "tsdx": "^0.14.1"
+    "tsdx": "^0.14.1",
+    "tslib": "^2.1.0"
   }
 }
