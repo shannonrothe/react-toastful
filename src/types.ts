@@ -18,6 +18,7 @@ export interface ToastfulOptions {
 }
 
 export type Toast = {
+  createdAt: number;
   dismiss(): void;
   dismissOnClick?: boolean;
   duration: number;
@@ -25,6 +26,7 @@ export type Toast = {
   height: number;
   id: string;
   output: string | JSX.Element;
+  pausedAt?: number;
   position: ToastPosition;
   swipeToDismiss?: boolean;
   toggle(): void;

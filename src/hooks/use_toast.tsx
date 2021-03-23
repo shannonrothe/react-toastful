@@ -30,6 +30,7 @@ export const useToastful = ({
   trackTouch?: boolean;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>();
   const { current: drag } = useRef<Draggable>({
     start: 0,
     x: 0,
@@ -39,6 +40,54 @@ export const useToastful = ({
     canDrag: false,
     closeOnClick: true
   });
+
+  const pauseToast = () => useStore.getState().pause(toast.id, Date.now());
+  const resumeToast = () => {
+    if (!toast.pausedAt) {
+      return;
+    }
+
+    const remaining = toast.duration - (toast.pausedAt - toast.createdAt);
+    if (remaining <= 0) {
+      toast.dismiss();
+      return;
+    }
+
+    timeoutRef.current = setTimeout(toast.dismiss, remaining);
+  };
+
+  useEffect(() => {
+    if (toast.duration === Infinity) {
+      return;
+    }
+
+    // Set initial timeout for the duration specified
+    timeoutRef.current = setTimeout(toast.dismiss, toast.duration);
+  }, []);
+
+  useEffect(() => {
+    if (!toast.pausedAt) {
+      return;
+    }
+
+    // If `pausedAt` changes, we need to check the remaining time
+    const timeRemaining = toast.duration - (toast.pausedAt - toast.createdAt);
+
+    // If there's less than 0ms remaining, dismiss and clear the timeout
+    if (timeRemaining <= 0) {
+      timeoutRef.current && clearTimeout(timeoutRef.current);
+      toast.dismiss();
+      return;
+    }
+
+    // Otherwise, check if there's an existing timer. If there is, remove it, otherwise
+    // establish a new timer for the time remaining
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    } else {
+      timeoutRef.current = setTimeout(toast.dismiss, timeRemaining);
+    }
+  }, [toast.pausedAt]);
 
   const onDragStart = (
     event:
@@ -143,6 +192,11 @@ export const useToastful = ({
       ? () => drag.closeOnClick && toast.dismiss()
       : undefined
   };
+
+  if (toast.duration !== Infinity) {
+    eventHandlers.onMouseEnter = pauseToast;
+    eventHandlers.onMouseLeave = resumeToast;
+  }
 
   return {
     eventHandlers,
