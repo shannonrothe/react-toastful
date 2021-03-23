@@ -6,8 +6,7 @@ export const useStore = create<{
   toasts: Toast[];
   dismiss: (id: string) => void;
   toggle: (id: string) => void;
-  pause: (id: string, time: number) => void;
-  resume: (id: string, time: number) => void;
+  pause: (toast: Toast, pauseAt: number) => void;
   addToast: (
     output: string | JSX.Element,
     options?: ToastfulOptions
@@ -46,14 +45,17 @@ export const useStore = create<{
     set(state => ({ toasts: [...state.toasts, toast] }));
     return { dismiss: toast.dismiss, toggle: toast.toggle };
   },
-  pause: (id, time) => {
+  pause: (toast, pausedAt) => {
+    if (toast.duration === Infinity) {
+      return;
+    }
+
     set(state => ({
       toasts: state.toasts.map(t =>
-        t.id === id ? { ...t, pausedAt: time } : t
+        t.id === toast.id ? { ...t, pausedAt } : t
       )
     }));
   },
-  resume: () => {},
   setToastHeight: (toast: Toast, height: number) =>
     set(state => ({
       toasts: state.toasts.map(t => (t.id === toast.id ? { ...t, height } : t))

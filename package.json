@@ -23,11 +23,11 @@
   "size-limit": [
     {
       "path": "dist/react-toastful.cjs.production.min.js",
-      "limit": "4kb"
+      "limit": "4.5kb"
     },
     {
       "path": "dist/react-toastful.esm.js",
-      "limit": "4kb"
+      "limit": "4.5kb"
     }
   ],
   "husky": {

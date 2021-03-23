@@ -1,6 +1,6 @@
 import { css, keyframes, setup } from "goober";
 import React, { useCallback } from "react";
-import { useToastful } from "../hooks/use_toast";
+import { useToastful } from "../hooks/use_toastful";
 import { useStore } from "../store";
 import { Toast, ToastKind } from "../types";
 

@@ -41,8 +41,9 @@ export const useToastful = ({
     closeOnClick: true
   });
 
-  const pauseToast = () => useStore.getState().pause(toast.id, Date.now());
+  const pauseToast = () => useStore.getState().pause(toast, Date.now());
   const resumeToast = () => {
+    console.log("Resuming");
     if (!toast.pausedAt) {
       return;
     }
@@ -99,6 +100,8 @@ export const useToastful = ({
     }
 
     if (toast.draggable) {
+      pauseToast();
+
       drag.canDrag = true;
       drag.x = getX(event.nativeEvent as DragEvent);
       drag.start = drag.x;
