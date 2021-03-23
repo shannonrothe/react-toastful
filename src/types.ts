@@ -13,7 +13,6 @@ export interface ToastfulOptions {
   kind?: ToastKind;
   draggable?: boolean;
   position?: ToastPosition;
-  swipeToDismiss?: boolean;
   visible?: boolean;
 }
 
@@ -28,7 +27,6 @@ export type Toast = {
   output: string | JSX.Element;
   pausedAt?: number;
   position: ToastPosition;
-  swipeToDismiss?: boolean;
   toggle(): void;
   visible: boolean;
   kind?: ToastKind;

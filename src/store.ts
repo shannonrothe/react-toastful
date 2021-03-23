@@ -14,15 +14,15 @@ export const useStore = create<{
   setToastHeight: (toast: Toast, height: number) => void;
 }>((set, get) => ({
   toasts: [],
-  dismiss: id =>
-    set(state => ({
-      toasts: state.toasts.filter(t => t.id !== id)
+  dismiss: (id) =>
+    set((state) => ({
+      toasts: state.toasts.filter((t) => t.id !== id),
     })),
-  toggle: id =>
-    set(state => ({
-      toasts: state.toasts.map(t =>
+  toggle: (id) =>
+    set((state) => ({
+      toasts: state.toasts.map((t) =>
         t.id === id ? { ...t, visible: !t.visible } : t
-      )
+      ),
     })),
   addToast: (output: string | JSX.Element, options?: ToastfulOptions) => {
     const { dismiss, toggle } = get();
@@ -38,11 +38,10 @@ export const useStore = create<{
       kind: options?.kind,
       output,
       position: options?.position ?? "top",
-      swipeToDismiss: options?.swipeToDismiss,
       toggle: () => toggle(id),
-      visible: options?.visible ?? true
+      visible: options?.visible ?? true,
     };
-    set(state => ({ toasts: [...state.toasts, toast] }));
+    set((state) => ({ toasts: [...state.toasts, toast] }));
     return { dismiss: toast.dismiss, toggle: toast.toggle };
   },
   pause: (toast, pausedAt) => {
@@ -50,14 +49,16 @@ export const useStore = create<{
       return;
     }
 
-    set(state => ({
-      toasts: state.toasts.map(t =>
+    set((state) => ({
+      toasts: state.toasts.map((t) =>
         t.id === toast.id ? { ...t, pausedAt } : t
-      )
+      ),
     }));
   },
   setToastHeight: (toast: Toast, height: number) =>
-    set(state => ({
-      toasts: state.toasts.map(t => (t.id === toast.id ? { ...t, height } : t))
-    }))
+    set((state) => ({
+      toasts: state.toasts.map((t) =>
+        t.id === toast.id ? { ...t, height } : t
+      ),
+    })),
 }));
