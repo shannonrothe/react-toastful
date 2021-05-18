@@ -20,7 +20,6 @@ const buildToast = (
   return {
     createdAt: Date.now(),
     dismissOnClick: options?.dismissOnClick,
-    draggable: options?.draggable ?? false,
     duration: options?.duration ?? Infinity,
     kind,
     output,

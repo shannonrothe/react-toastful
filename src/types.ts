@@ -28,12 +28,6 @@ export type ToastfulOptions = {
    */
   duration?: number;
   /**
-   * Whether a toast can be dragged to dismiss.
-   *
-   * @default false
-   */
-  draggable?: boolean;
-  /**
    * The position to render the toast at.
    *
    * @see ToastPosition
@@ -60,7 +54,6 @@ export type Toast = {
   createdAt: number;
   dismissOnClick?: boolean;
   duration: number;
-  draggable: boolean;
   height?: number;
   id: string;
   kind?: ToastKind;

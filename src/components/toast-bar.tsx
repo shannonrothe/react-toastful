@@ -50,7 +50,7 @@ const getPositionStyle = (
   const factor = top ? 1 : -1;
 
   const horizontal = centered
-    ? { justifyContent: "center" }
+    ? { justifyContent: "center", left: 0, right: 0 }
     : toast.position.includes("left")
     ? { justifyContent: "flex-start", left: "1em" }
     : { justifyContent: "flex-end", right: "1em" };
@@ -60,8 +60,7 @@ const getPositionStyle = (
   return {
     display: "flex",
     position: "fixed",
-    transform: `translateX(${centered ? "-50%" : "0"}) translateY(${offset *
-      factor}px)`,
+    transform: `translateY(${offset * factor}px)`,
     transition: "all 0.2s cubic-bezier(.35,.2,.58,.91)",
     ...vertical,
     ...horizontal,
@@ -98,7 +97,6 @@ export const ToastBar = ({
 
   const { eventHandlers, offset, ref } = useToastful({
     toast,
-    trackMouse: true,
   });
 
   const positionStyle = getPositionStyle(toast, offset);
@@ -119,17 +117,14 @@ export const ToastBar = ({
         ref={toastRef}
         role={eventHandlers.onClick ? "button" : undefined}
         aria-label={eventHandlers.onClick ? "Click to dismiss" : undefined}
-        draggable={toast.draggable}
         className={toast.className}
         style={{
           ...animationStyle,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: "100%",
           maxWidth: "350px",
-          cursor:
-            eventHandlers.onClick || toast.draggable ? "pointer" : "default",
+          cursor: eventHandlers.onClick ? "pointer" : "default",
           ...(defaultStyle && baseStyles),
         }}
       >
