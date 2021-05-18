@@ -32,7 +32,7 @@ export const useToastful = ({
   const { dispatch } = toastStore.getState();
   const { id } = toast;
   const ref = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<number>();
   const { current: drag } = useRef<Draggable>({
     start: 0,
     x: 0,

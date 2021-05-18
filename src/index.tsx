@@ -32,10 +32,18 @@ const buildToast = (
   };
 };
 
+const defaultDurations: Record<ToastKind, number> = {
+  success: 2000,
+  failure: 4000,
+  warning: 3000,
+  loading: Infinity,
+};
+
 export const Toastful = ({ defaultStyle }: ToastfulProps) => {
   const { toasts, dispatch } = toastStore((state) => ({
     toasts: state.toasts.map(toast => ({
       ...toast,
+      duration: toast.duration ?? (toast.kind && defaultDurations[toast.kind]) ?? Infinity,
     })),
     dispatch: state.dispatch,
   }));
@@ -92,8 +100,10 @@ export type PromiseToastOutput = {
   failure: ToastOutput;
 };
 
+toastful.loading = createToast('loading');
+
 toastful.promise = <T, >(promise: Promise<T>, outputs: PromiseToastOutput, options?: ToastfulOptions) => {
-  const id = toastful(outputs.loading, { ...options });
+  const id = toastful.loading(outputs.loading, { ...options });
 
   promise.then((p) => {
     toastful.success(outputs.success, {
@@ -113,6 +123,8 @@ toastful.promise = <T, >(promise: Promise<T>, outputs: PromiseToastOutput, optio
 
   return promise;
 }
+
+toastful.dismiss = (id: string) => toastStore.getState().dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
 
 export { toastful };
 export { ToastfulOptions, ToastPosition, ToastfulProps, ToastKind };

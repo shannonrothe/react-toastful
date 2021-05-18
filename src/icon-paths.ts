@@ -1,6 +1,8 @@
 import { ToastKind } from ".";
 
-export const iconPaths: Record<ToastKind, string> = {
+type ToastKindWithoutLoading = Exclude<ToastKind, "loading">;
+
+export const iconPaths: Record<ToastKindWithoutLoading, string> = {
   success: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
   failure:
     "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z",
