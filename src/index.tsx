@@ -20,7 +20,7 @@ const buildToast = (
   return {
     createdAt: Date.now(),
     dismissOnClick: options?.dismissOnClick,
-    duration: options?.duration ?? Infinity,
+    duration: options?.duration,
     kind,
     output,
     position: options?.position ?? "top",

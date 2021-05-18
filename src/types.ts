@@ -53,12 +53,11 @@ export type ToastOutput = string | JSX.Element | ((t: Toast) => JSX.Element);
 export type Toast = {
   createdAt: number;
   dismissOnClick?: boolean;
-  duration: number;
+  duration?: number;
   height?: number;
   id: string;
   kind?: ToastKind;
   output: ToastOutput;
-  pausedAt?: number;
   position: ToastPosition;
   visible: boolean;
   className?: string;

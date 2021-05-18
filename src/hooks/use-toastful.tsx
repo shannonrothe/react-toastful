@@ -8,68 +8,19 @@ export const useToastful = ({ toast }: { toast: Toast }) => {
   const ref = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<number>();
 
-  const pauseToast = () =>
-    toastStore.getState().dispatch({
-      type: ToastfulActionType.PAUSE_TOAST,
-      toast,
-      pausedAt: Date.now(),
-    });
-  const resumeToast = () => {
-    if (!toast.pausedAt) {
-      return;
-    }
-
-    const remaining = toast.duration - (toast.pausedAt - toast.createdAt);
-    if (remaining <= 0) {
-      dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
-      return;
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
-    }, remaining);
-  };
-
   useEffect(() => {
-    if (toast.duration === Infinity) {
+    if (
+      !toast.duration ||
+      toast.duration === Infinity ||
+      toast.kind === "loading"
+    ) {
       return;
     }
 
-    // Set initial timeout for the duration specified
     timeoutRef.current = setTimeout(() => {
       dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
     }, toast.duration);
-  }, []);
-
-  useEffect(() => {
-    if (!toast.pausedAt || toast.duration === Infinity) {
-      return;
-    }
-
-    // If `pausedAt` changes, we need to check the remaining time
-    const timeRemaining = toast.duration - (toast.pausedAt - toast.createdAt);
-
-    // If there's less than 0ms remaining, dismiss and clear the timeout
-    if (timeRemaining <= 0) {
-      timeoutRef.current && clearTimeout(timeoutRef.current);
-      toastStore
-        .getState()
-        .dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
-      return;
-    }
-
-    // Otherwise, check if there's an existing timer. If there is, remove it, otherwise
-    // establish a new timer for the time remaining
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    } else {
-      timeoutRef.current = setTimeout(() => {
-        toastStore
-          .getState()
-          .dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
-      }, timeRemaining);
-    }
-  }, [toast.pausedAt]);
+  }, [toast.duration, id, toast.kind]);
 
   const visibleToasts = toastStore.getState().toasts.filter((t) => t.visible);
   const offset = React.useCallback(() => {
@@ -92,11 +43,6 @@ export const useToastful = ({ toast }: { toast: Toast }) => {
         }
       : undefined,
   };
-
-  if (toast.duration !== Infinity) {
-    eventHandlers.onMouseEnter = pauseToast;
-    eventHandlers.onMouseLeave = resumeToast;
-  }
 
   return {
     eventHandlers,
