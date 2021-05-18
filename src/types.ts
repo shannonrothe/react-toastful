@@ -7,29 +7,29 @@ export type ToastPosition =
   | "top_right";
 
 export type ToastKind = "success" | "failure" | "warning";
-export interface ToastfulOptions {
+export type ToastfulOptions = {
+  id?: string;
   dismissOnClick?: boolean;
   duration?: number;
-  kind?: ToastKind;
   draggable?: boolean;
   position?: ToastPosition;
   visible?: boolean;
-}
+  className?: string;
+};
+
+export type ToastOutput = string | JSX.Element | ((t: Toast) => JSX.Element);
 
 export type Toast = {
   createdAt: number;
-  dismiss(): void;
   dismissOnClick?: boolean;
   duration: number;
   draggable: boolean;
-  height: number;
+  height?: number;
   id: string;
-  output: string | JSX.Element;
+  kind?: ToastKind;
+  output: ToastOutput;
   pausedAt?: number;
   position: ToastPosition;
-  toggle(): void;
   visible: boolean;
-  kind?: ToastKind;
+  className?: string;
 };
-
-export type ToastInstance = Pick<Toast, "dismiss" | "toggle">;

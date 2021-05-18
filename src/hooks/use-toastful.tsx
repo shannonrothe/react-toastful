@@ -1,5 +1,5 @@
 import React, { DOMAttributes, useEffect, useRef } from "react";
-import { useStore } from "../store";
+import { ToastfulActionType, toastStore } from "../store";
 import { Toast } from "../types";
 
 type DragEvent = TouchEvent & MouseEvent;
@@ -23,12 +23,14 @@ const getX = (event: DragEvent) => {
 export const useToastful = ({
   toast,
   trackMouse = false,
-  trackTouch = true
+  trackTouch = true,
 }: {
   toast: Toast;
   trackMouse?: boolean;
   trackTouch?: boolean;
 }) => {
+  const { dispatch } = toastStore.getState();
+  const { id } = toast;
   const ref = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const { current: drag } = useRef<Draggable>({
@@ -38,23 +40,29 @@ export const useToastful = ({
     delta: 0,
     removalDelta: 0,
     canDrag: false,
-    closeOnClick: true
+    closeOnClick: true,
   });
 
-  const pauseToast = () => useStore.getState().pause(toast, Date.now());
+  const pauseToast = () =>
+    toastStore.getState().dispatch({
+      type: ToastfulActionType.PAUSE_TOAST,
+      toast,
+      pausedAt: Date.now(),
+    });
   const resumeToast = () => {
-    console.log("Resuming");
     if (!toast.pausedAt) {
       return;
     }
 
     const remaining = toast.duration - (toast.pausedAt - toast.createdAt);
     if (remaining <= 0) {
-      toast.dismiss();
+      dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
       return;
     }
 
-    timeoutRef.current = setTimeout(toast.dismiss, remaining);
+    timeoutRef.current = setTimeout(() => {
+      dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
+    }, remaining);
   };
 
   useEffect(() => {
@@ -63,11 +71,13 @@ export const useToastful = ({
     }
 
     // Set initial timeout for the duration specified
-    timeoutRef.current = setTimeout(toast.dismiss, toast.duration);
+    timeoutRef.current = setTimeout(() => {
+      dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
+    }, toast.duration);
   }, []);
 
   useEffect(() => {
-    if (!toast.pausedAt) {
+    if (!toast.pausedAt || toast.duration === Infinity) {
       return;
     }
 
@@ -77,7 +87,9 @@ export const useToastful = ({
     // If there's less than 0ms remaining, dismiss and clear the timeout
     if (timeRemaining <= 0) {
       timeoutRef.current && clearTimeout(timeoutRef.current);
-      toast.dismiss();
+      toastStore
+        .getState()
+        .dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
       return;
     }
 
@@ -86,7 +98,11 @@ export const useToastful = ({
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     } else {
-      timeoutRef.current = setTimeout(toast.dismiss, timeRemaining);
+      timeoutRef.current = setTimeout(() => {
+        toastStore
+          .getState()
+          .dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
+      }, timeRemaining);
     }
   }, [toast.pausedAt]);
 
@@ -100,8 +116,6 @@ export const useToastful = ({
     }
 
     if (toast.draggable) {
-      pauseToast();
-
       drag.canDrag = true;
       drag.x = getX(event.nativeEvent as DragEvent);
       drag.start = drag.x;
@@ -132,7 +146,7 @@ export const useToastful = ({
       drag.canDrag = false;
 
       if (Math.abs(drag.delta) > drag.removalDelta) {
-        toast.dismiss();
+        dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
         return;
       }
 
@@ -176,24 +190,29 @@ export const useToastful = ({
     };
   }, [toast.draggable]);
 
-  const visibleToasts = useStore.getState().toasts.filter(t => t.visible);
+  const visibleToasts = toastStore.getState().toasts.filter((t) => t.visible);
   const offset = React.useCallback(() => {
     const visibleToastsAtPosition = visibleToasts.filter(
-      t => t.visible && t.position === toast.position
+      (t) => t.visible && t.position === toast.position
     );
-    const index = visibleToastsAtPosition.findIndex(t => t.id === toast.id);
+    const index = visibleToastsAtPosition.findIndex((t) => t.id === id);
     const includeMargin = index > 0;
     const gutterSpacing = includeMargin ? 8 : 0;
 
     return toast.height ? index * (toast.height + gutterSpacing) : 8;
-  }, [visibleToasts, toast.height])();
+  }, [visibleToasts, toast])();
 
   const eventHandlers: DOMAttributes<HTMLElement> = {
     onMouseDown: onDragStart,
     onTouchStart: onDragStart,
-    onClick: toast.dismissOnClick
-      ? () => drag.closeOnClick && toast.dismiss()
-      : undefined
+    onClick:
+      toast.dismissOnClick && drag.closeOnClick
+        ? () => {
+            toastStore
+              .getState()
+              .dispatch({ type: ToastfulActionType.DISMISS_TOAST, id });
+          }
+        : undefined,
   };
 
   if (toast.duration !== Infinity) {
@@ -204,6 +223,6 @@ export const useToastful = ({
   return {
     eventHandlers,
     offset,
-    ref
+    ref,
   };
 };

@@ -1,44 +1,119 @@
+import { setup } from "goober";
 import * as React from "react";
-import { ToastBar } from "./components/ToastBar";
-import { useStore } from "./store";
-import {
-  ToastfulOptions,
-  ToastInstance,
-  ToastKind,
-  ToastPosition
-} from "./types";
+import { ToastBar } from "./components/toast-bar";
+import { ToastfulActionType, toastStore } from "./store";
+import type { ToastfulOptions, ToastKind, ToastOutput, ToastPosition } from './types';
+import { Toast } from "./types";
+import { nextId } from "./utils";
 
-export type ToastfulProps = {
-  children?: (output: string | JSX.Element) => React.ReactNode;
+setup(React.createElement);
+
+type ToastfulProps = {
+  defaultStyle?: boolean;
 };
 
-export const Toastful = ({ children }: ToastfulProps) => {
-  const { toasts } = useStore(state => ({
-    toasts: state.toasts
+const buildToast = (
+  output: ToastOutput,
+  kind?: ToastKind,
+  options?: ToastfulOptions
+): Toast => {
+  return {
+    createdAt: Date.now(),
+    dismissOnClick: options?.dismissOnClick,
+    draggable: options?.draggable ?? false,
+    duration: options?.duration ?? Infinity,
+    kind,
+    output,
+    position: options?.position ?? "top",
+    visible: options?.visible ?? true,
+    className: options?.className,
+    ...options,
+    id: options?.id ?? nextId(),
+  };
+};
+
+export const Toastful = ({ defaultStyle }: ToastfulProps) => {
+  const { toasts, dispatch } = toastStore((state) => ({
+    toasts: state.toasts.map(toast => ({
+      ...toast,
+    })),
+    dispatch: state.dispatch,
   }));
+
+  const handleCalculateHeight = (id: string, height: number) => dispatch({ type: ToastfulActionType.UPDATE_HEIGHT, id, height });
 
   return (
     <div
       style={{
         position: "fixed",
         zIndex: 9999,
-        display: "flex"
+        display: "flex",
       }}
     >
-      {toasts.map(toast => (
+      {toasts.map((toast) => (
         <ToastBar
+          defaultStyle={defaultStyle}
           key={toast.id}
+          onCalculateHeight={handleCalculateHeight}
           toast={toast}
-          renderToast={children && children(toast.output)}
         />
       ))}
     </div>
   );
 };
 
-export const toastful = (
-  output: string | JSX.Element,
+type ToastFactory = (
+  output: ToastOutput,
   options?: ToastfulOptions
-) => useStore.getState().addToast(output, options);
+) => string;
 
-export { ToastfulOptions, ToastInstance, ToastPosition, ToastKind };
+const createToast = (kind?: ToastKind): ToastFactory => (output, options) => {
+  const toast = buildToast(output, kind, options);
+  toastStore.getState().dispatch({
+    type: ToastfulActionType.UPSERT_TOAST,
+    toast,
+  });
+
+  return toast.id;
+}
+
+const toastful = (
+  output: ToastOutput,
+  options?: ToastfulOptions
+): string => createToast()(output, options);
+
+toastful.success = createToast("success");
+toastful.failure = createToast("failure");
+toastful.warning = createToast("warning");
+
+export type PromiseToastOutput = {
+  loading: ToastOutput;
+  success: ToastOutput;
+  failure: ToastOutput;
+};
+
+toastful.promise = <T, >(promise: Promise<T>, outputs: PromiseToastOutput, options?: ToastfulOptions) => {
+  const id = toastful(outputs.loading, { ...options });
+
+  promise.then((p) => {
+    toastful.success(outputs.success, {
+      id,
+      ...options,
+    })
+
+    return p;
+  }).catch((p) => {
+    toastful.failure(outputs.failure, {
+      id,
+      ...options,
+    });
+
+    return p;
+  })
+
+  return promise;
+}
+
+export { toastful };
+export { ToastfulOptions, ToastPosition, ToastfulProps, ToastKind };
+
