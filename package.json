@@ -1,6 +1,6 @@
 {
   "name": "react-toastful",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Simple, configurable, and customizable React toast library",
   "keywords": [
     "react",
@@ -9,37 +9,25 @@
   "author": "shannonrothe",
   "license": "MIT",
   "repository": "shannonrothe/react-toastful",
-  "main": "dist/index.js",
+  "main": "dist/react-toastful.umd.js",
+  "module": "dist/react-toastful.es.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist",
     "src"
   ],
-  "module": "dist/index.js",
-  "jsnext:main": "dist/index.js",
-  "engines": {
-    "node": ">=10"
-  },
   "size-limit": [
     {
-      "path": "dist/react-toastful.cjs.production.min.js",
-      "limit": "4.5kb"
+      "path": "dist/react-toastful.umd.js",
+      "limit": "5kb"
     },
     {
-      "path": "dist/react-toastful.esm.js",
-      "limit": "4.5kb"
+      "path": "dist/react-toastful.es.js",
+      "limit": "5kb"
     }
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
-  },
   "scripts": {
-    "build": "tsdx build",
-    "start": "tsdx watch",
-    "lint": "tsdx lint",
-    "test": "echo \"No test specified\"",
+    "build": "vite build && tsc --emitDeclarationOnly --outDir dist/",
     "analyze": "size-limit --why",
     "size": "size-limit"
   },
@@ -48,17 +36,18 @@
     "zustand": "^3.3.3"
   },
   "peerDependencies": {
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.10.1",
-    "@types/classnames": "^2.2.11",
     "@types/react": "^17.0.3",
-    "@types/react-dom": "^17.0.2",
+    "@types/react-dom": "^17.0.5",
     "@types/uuid": "^8.3.0",
+    "prettier": "^2.3.0",
     "size-limit": "^4.10.1",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.1.0"
+    "tslib": "^2.2.0",
+    "typescript": "^4.2.4",
+    "vite": "^2.3.2"
   }
 }

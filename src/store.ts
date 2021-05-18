@@ -1,64 +1,91 @@
 import create from "zustand";
-import { Toast, ToastfulOptions, ToastInstance } from "./types";
-import { nextId } from "./utils";
+import { Toast } from "./types";
 
-export const useStore = create<{
-  toasts: Toast[];
-  dismiss: (id: string) => void;
-  toggle: (id: string) => void;
-  pause: (toast: Toast, pauseAt: number) => void;
-  addToast: (
-    output: string | JSX.Element,
-    options?: ToastfulOptions
-  ) => ToastInstance;
-  setToastHeight: (toast: Toast, height: number) => void;
-}>((set, get) => ({
-  toasts: [],
-  dismiss: (id) =>
-    set((state) => ({
-      toasts: state.toasts.filter((t) => t.id !== id),
-    })),
-  toggle: (id) =>
-    set((state) => ({
-      toasts: state.toasts.map((t) =>
-        t.id === id ? { ...t, visible: !t.visible } : t
-      ),
-    })),
-  addToast: (output: string | JSX.Element, options?: ToastfulOptions) => {
-    const { dismiss, toggle } = get();
-    const id = nextId();
-    const toast: Toast = {
-      createdAt: Date.now(),
-      dismiss: () => dismiss(id),
-      dismissOnClick: options?.dismissOnClick,
-      draggable: options?.draggable ?? false,
-      duration: options?.duration ?? Infinity,
-      height: 0,
-      id,
-      kind: options?.kind,
-      output,
-      position: options?.position ?? "top",
-      toggle: () => toggle(id),
-      visible: options?.visible ?? true,
-    };
-    set((state) => ({ toasts: [...state.toasts, toast] }));
-    return { dismiss: toast.dismiss, toggle: toast.toggle };
-  },
-  pause: (toast, pausedAt) => {
-    if (toast.duration === Infinity) {
-      return;
+export enum ToastfulActionType {
+  ADD_TOAST,
+  UPDATE_TOAST,
+  UPSERT_TOAST,
+  DISMISS_TOAST,
+  REMOVE_TOAST,
+  PAUSE_TOAST,
+  UPDATE_HEIGHT,
+}
+
+type ToastfulAction =
+  | {
+      type: ToastfulActionType.ADD_TOAST;
+      toast: Toast;
     }
+  | { type: ToastfulActionType.UPDATE_TOAST; toast: Partial<Toast> }
+  | { type: ToastfulActionType.UPSERT_TOAST; toast: Toast }
+  | { type: ToastfulActionType.DISMISS_TOAST; id: string }
+  | { type: ToastfulActionType.REMOVE_TOAST; id: string }
+  | { type: ToastfulActionType.PAUSE_TOAST; toast: Toast; pausedAt: number }
+  | { type: ToastfulActionType.UPDATE_HEIGHT; id: string; height: number };
 
-    set((state) => ({
-      toasts: state.toasts.map((t) =>
-        t.id === toast.id ? { ...t, pausedAt } : t
-      ),
-    }));
-  },
-  setToastHeight: (toast: Toast, height: number) =>
-    set((state) => ({
-      toasts: state.toasts.map((t) =>
-        t.id === toast.id ? { ...t, height } : t
-      ),
-    })),
+type ToastState = {
+  toasts: Toast[];
+  dispatch: (action: ToastfulAction) => any;
+};
+interface State {
+  toasts: Toast[];
+}
+
+const queueForRemoval = (id: string) =>
+  setTimeout(() => {
+    toastStore
+      .getState()
+      .dispatch({ type: ToastfulActionType.REMOVE_TOAST, id });
+  }, 1000);
+
+const reducer = (state: ToastState, action: ToastfulAction): State => {
+  switch (action.type) {
+    case ToastfulActionType.ADD_TOAST:
+      return { toasts: [...state.toasts, action.toast] };
+    case ToastfulActionType.UPDATE_TOAST:
+      return {
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
+      };
+    case ToastfulActionType.UPSERT_TOAST:
+      return state.toasts.find((t) => t.id === action.toast.id)
+        ? reducer(state, {
+            type: ToastfulActionType.UPDATE_TOAST,
+            toast: action.toast,
+          })
+        : reducer(state, {
+            type: ToastfulActionType.ADD_TOAST,
+            toast: action.toast,
+          });
+    case ToastfulActionType.DISMISS_TOAST:
+      queueForRemoval(action.id);
+
+      return {
+        toasts: state.toasts.map((t) =>
+          t.id === action.id ? { ...t, visible: false } : t
+        ),
+      };
+    case ToastfulActionType.REMOVE_TOAST:
+      return {
+        toasts: state.toasts.filter((t) => t.id !== action.id),
+      };
+    case ToastfulActionType.UPDATE_HEIGHT:
+      return {
+        toasts: state.toasts.map((t) =>
+          t.id === action.id ? { ...t, height: action.height } : t
+        ),
+      };
+    case ToastfulActionType.PAUSE_TOAST:
+      return {
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, pausedAt: action.pausedAt } : t
+        ),
+      };
+  }
+};
+
+export const toastStore = create<ToastState>((set) => ({
+  toasts: [],
+  dispatch: (args) => set((state) => reducer(state, args)),
 }));
